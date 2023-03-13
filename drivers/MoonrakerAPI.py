@@ -1,5 +1,5 @@
 # Python Script containing a class to send commands to, and query specific information from,
-#   Klipper based printers running Moonraker REST API.
+#   Klipper based printers running Moonraker REST API
 #
 # Does NOT hold open the connection.  Use for low-volume requests.
 # Does NOT, at this time, support authentication.
@@ -22,7 +22,7 @@ import json
 import time
 import re
 # invoke parent (TAMV) _logger
-_logger = logging.getLogger('TAMV.Moonraker')
+_logger = logging.getLogger('TAMV.MoonrakerAPI')
 
 #################################################################################################################################
 #################################################################################################################################
