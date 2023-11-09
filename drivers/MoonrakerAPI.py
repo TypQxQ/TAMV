@@ -64,7 +64,7 @@ class printerAPI:
     #
     # Raises:
     #   - UnknownController: if fails to connect
-    def __init__(self, baseURL, nickname='Default'):
+    def __init__(self, baseURL, nickname='Default', password=''):
         _logger.debug('Starting API..')
 
         self.session = requests.Session()
@@ -97,13 +97,20 @@ class printerAPI:
                 offsetZ = round(float(toolOffset['Z']), 3)
 
                 _logger.info("Adding tool %d with offsets %f, %f, %f" %
-                             (i, offsetX, offsetY, offsetZ))
+                             (self.tools[i]._number, offsetX, offsetY, offsetZ))
+                
+                # Because we are using the real toolhead position without any offsets applied.
+                self.tools[i]._offsets={'X': 0, 'Y': 0, 'Z': 0}
+                self.tools[i]._real_offsets={'X': offsetX, 'Y': offsetY, 'Z': offsetZ}
 
-                tempTool = Tool(
-                    number=i,
-                    name=self.OBJECT_TOOL_NAME % (i),
-                    offsets={'X': offsetX, 'Y': offsetY, 'Z': offsetZ})
-                self.tools.append(tempTool)
+                _logger.debug("Confirming was added tool %d with offsets %f, %f, %f" %
+                             (self.tools[i]._number, self.tools[i]._offsets["X"], self.tools[i]._offsets["Y"], self.tools[i]._offsets["Z"]))
+                _logger.debug("Confirming was added tool %d with real_offsets %f, %f, %f" %
+                             (self.tools[i]._number, self.tools[i]._real_offsets["X"], self.tools[i]._real_offsets["Y"], self.tools[i]._real_offsets["Z"]))
+
+                # Because we are using the real toolhead position without any offsets applied.
+#                self.setToolOffsets(tool=self.tools[i]._number, X=0, Y=0, Z=offsetZ)
+                
 
         except UnknownController as uc:
             _logger.critical("Unknown controller at " + self._base_url)
@@ -166,6 +173,11 @@ class printerAPI:
             for t in j['result']['objects']:
                 if re.match(self.OBJECT_TOOL_REGEX, str.lower(t)):
                     count += 1
+                    _, nr = t.split(" ", 1)
+                    
+                    tempTool = Tool(number=int(nr), name=str(t))
+
+                    self.tools.append(tempTool)
         return (count)
 
     #################################################################################################################################
@@ -188,6 +200,7 @@ class printerAPI:
             if 'error' in j:
                 raise FailedToolDetection(j['error']['message'])
             elif 'result' in j:
+                _logger.debug('Current tool is %s.' % str(j['result']['status'][self.OBJECT_TOOLHEAD][self.OBJECT_TOOLHEAD_TOOL_PROPERTY]))
                 return j['result']['status'][self.OBJECT_TOOLHEAD][self.OBJECT_TOOLHEAD_TOOL_PROPERTY]
 
             # Unknown condition, raise error
@@ -217,7 +230,7 @@ class printerAPI:
     def getToolOffset(self, toolIndex=0):
         _logger.debug('Called getToolOffset')
         try:
-            toolName = self.OBJECT_TOOL_NAME % (toolIndex)
+            toolName = self.tools[toolIndex]._name
 
             j = self.query("/printer/objects/query?" + toolName + "=offset")
             if 'error' in j:
@@ -298,12 +311,15 @@ class printerAPI:
     def getCoordinates(self):
         _logger.debug('Called getCoordinates')
         try:
-            j = self.query('/printer/objects/query?gcode_move=gcode_position')
+#            j = self.query('/printer/objects/query?gcode_move=gcode_position')
+            j = self.query('/printer/objects/query?gcode_move=position')
             if 'error' in j:
                 raise CoordinatesException(j['error']['message'])
             elif 'result' in j:
-                coords = j['result']['status']['gcode_move']['gcode_position']
-
+#                coords = j['result']['status']['gcode_move']['gcode_position']
+                # Using the real toolhead position without any offsets applied.
+                coords = j['result']['status']['gcode_move']['position']
+ 
             return ({
                 'X': round(coords[0], 3),
                 'Y': round(coords[1], 3),
@@ -346,6 +362,20 @@ class printerAPI:
             elif (X is None and Y is None):
                 raise SetOffsetException("Invalid offsets provided.")
             else:
+                _logger.debug("T%d previous offset: %f, %f, %f" %
+                             (self.tools[tool]._number, self.tools[tool]._real_offsets["X"], self.tools[tool]._real_offsets["Y"], self.tools[tool]._real_offsets["Z"]))
+                _logger.debug("T%d offset recieved: %f, %f, %f" %
+                             (self.tools[tool]._number, X, Y, 0))
+                _logger.debug("T%d reversed offset recieved: %f, %f, %f" %
+                             (self.tools[tool]._number, -X, -Y, 0))
+                # Calculate new offset
+                X = self.tools[tool]._real_offsets["X"] - X
+                Y = self.tools[tool]._real_offsets["Y"] - Y
+
+                _logger.debug("T%d Calculated offset: %f, %f, %f" %
+                             (self.tools[tool]._number, round(float(X), 3), round(float(X), 3), self.tools[tool]._real_offsets["Z"]))
+
+
                 self.gCode(self.G_CODE_SET_TOOL_OFFSET %
                            (str(tool), round(float(X), 3), round(float(Y), 3)))
                 _logger.debug("Tool offsets applied.")
@@ -786,12 +816,14 @@ class Tool:
     _name = "Tool"
     _nozzleSize = 0.4
     _offsets = {"X": 0, "Y": 0, "Z": 0}
+    _real_offsets = {"X": 0, "Y": 0, "Z": 0}
 
     def __init__(self, number=0, name="Tool", nozzleSize=0.4, offsets={"X": 0, "Y": 0, "Z": 0}):
         self._number = number
         self._name = name
         self._nozzleSize = nozzleSize
         self._offsets = offsets
+        self._real_offsets = offsets
 
     def getJSON(self):
         return ({
