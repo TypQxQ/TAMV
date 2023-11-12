@@ -604,10 +604,10 @@ class DetectionManager(QObject):
         except: outputFrame = copy.deepcopy(frameInput)
         if(algorithm == 0):
             yuv = cv2.cvtColor(outputFrame, cv2.COLOR_BGR2YUV)
-            yuvPlanes = cv2.split(yuv)
-            yuvPlanes[0] = cv2.GaussianBlur(yuvPlanes[0],(7,7),6)
-            yuvPlanes[0] = cv2.adaptiveThreshold(yuvPlanes[0],255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY,35,1)
-            outputFrame = cv2.cvtColor(yuvPlanes[0],cv2.COLOR_GRAY2BGR)
+            y = cv2.split(yuv)[0]
+            y = cv2.GaussianBlur(y,(7,7),6)
+            y = cv2.adaptiveThreshold(y,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY,35,1)
+            outputFrame = cv2.cvtColor(y,cv2.COLOR_GRAY2BGR)
         elif(algorithm == 1):
             outputFrame = cv2.cvtColor(outputFrame, cv2.COLOR_BGR2GRAY )
             thr_val, outputFrame = cv2.threshold(outputFrame, 127, 255, cv2.THRESH_BINARY|cv2.THRESH_TRIANGLE )
