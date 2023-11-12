@@ -737,7 +737,8 @@ def _reader_mjpeg(q, frameEvent, stopEvent, videoSrc, height, width, backend):
 
     # Don't need to set a high FPS as the logic won't run that fast anyway
     # FPS = 1/30
-    FPS = 1/15
+    # FPS = 1/15
+    FPS=1/4
     chunk_size = 1024
     
     framenr = 0
