@@ -8,7 +8,8 @@ import numpy as np
 from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtCore import pyqtSlot, QObject, pyqtSignal
 from time import sleep
-import copy, sys, multiprocessing
+import copy, sys, multiprocessing, requests
+from PIL import Image, ImageDraw, ImageFont, ImageFile
 
 class DetectionManager(QObject):
     # class attributes
@@ -651,7 +652,7 @@ class DetectionManager(QObject):
         self.pipeDM.send(settings)
 
 # Independent process to run camera grab functions
-def _reader(q, frameEvent, stopEvent, videoSrc, height, width, backend):
+def _reader_camera(q, frameEvent, stopEvent, videoSrc, height, width, backend):
         cap = cv2.VideoCapture(videoSrc, backend)
         cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
@@ -713,3 +714,98 @@ def _reader(q, frameEvent, stopEvent, videoSrc, height, width, backend):
         cap.release()
         q.send(-1)
         q.close()
+
+# Independent process to run camera grab functions. This is the experimental MJPEG version
+def _reader(q, frameEvent, stopEvent, videoSrc, height, width, backend):
+    if videoSrc.startswith('http'):
+        # This is an MJPEG stream
+        _logger.info('Starting MJPEG stream')
+        _reader_mjpeg(q, frameEvent, stopEvent, videoSrc, height, width, backend)
+    else:
+        # This is a standard camera
+        _logger.info('Starting standard camera')
+        _reader_camera(q, frameEvent, stopEvent, videoSrc, height, width, backend)
+        
+def _reader_mjpeg(q, frameEvent, stopEvent, videoSrc, height, width, backend):
+    camera_address = videoSrc
+
+    # send default settings to queue just so it doesn't hang. This is a bit of a hack for backwards compatibility.
+    cameraSettings = {'default': 1, 'brightness': 1, 'contrast': 1, 'saturation': 1, 'hue': 1}
+    q.send(cameraSettings)
+
+    session = requests.Session()
+
+    # Don't need to set a high FPS as the logic won't run that fast anyway
+    # FPS = 1/30
+    FPS = 1/15
+    chunk_size = 1024
+    
+    framenr = 0
+    
+    while not stopEvent.is_set():
+        try:
+            with session.get(camera_address, stream=True) as stream:
+                # raise an exception if we failed to get any data from the camera
+                stream.raise_for_status()
+
+                bytes_ = b''
+                for chunk in stream.iter_content(chunk_size=chunk_size):
+                    bytes_ += chunk
+                    a = bytes_.find(b'\xff\xd8')
+                    b = bytes_.find(b'\xff\xd9')
+                    # If we have a complete frame, decode it
+                    if a != -1 and b != -1:
+                        jpg = bytes_[a:b+2]
+                        #End the for loop because we found a frame
+                        break
+                    
+
+                # Read the image from the byte array with OpenCV
+                frame = cv2.imdecode(np.frombuffer(jpg, dtype=np.uint8), cv2.IMREAD_COLOR)
+                # Draw the text on the image
+                # frame = drawOnFrame(frame, framenr )
+                framenr += 1
+                # Return the image
+                q.send(frame)
+
+                # check for inputs so they don't que up. This is a bit of a hack for backwards compatibility.
+                if(q.poll(FPS/2)):
+                    _ = q.recv()
+                sleep(FPS)
+        except Exception as e:
+            # If we get an error, send it to the main thread as an image
+            errorImage = Image.open('./resources/error.png')
+            errorImage = drawOnFrame(errorImage, str(e))
+            q.send(errorImage)
+            # No need for high FPS here
+            sleep(FPS*10)
+    if session is not None:
+        session.close()
+        session = None
+    stopEvent.set()
+    q.send(-1)
+    q.close()
+
+def drawOnFrame(image, text):
+    try:
+        usedFrame = copy.deepcopy(image)
+
+        # Convert numpy array to Image object
+        # usedFrame = Image.fromarray(usedFrame)
+
+        # Create a draw object
+        draw = ImageDraw.Draw(usedFrame)
+
+        # Choose a font
+        font = ImageFont.truetype("arial.ttf", 32)
+
+        # Draw the date on the image
+        draw.text((10, 10), str(text), font=font, fill=(255, 255, 255))
+
+        # Convert Image object back to numpy array
+        usedFrame = np.array(usedFrame)
+
+        return usedFrame
+    except Exception as e:
+        print(f"Error in drawOnFrame: {e}")
+        return image
