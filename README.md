@@ -1,3 +1,10 @@
+# Install in Windows
+- Install Python
+- Restart Windows if prompted
+- Copy the repository to a directory.
+- Run Install_Windows.bat to install requirements for Windows.
+- Run_Windows.bat launches TAMV on Windows.
+
 **TAMV _is under active development!_**
 # Table of Contents
 - [TAMV Walkthrough Video](#tamv-in-action)
