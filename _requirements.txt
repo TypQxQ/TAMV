@@ -1,0 +1,12 @@
+certifi==2023.11.17
+charset-normalizer==3.3.2
+debugpy==1.8.0
+idna==3.4
+numpy==1.26.2
+opencv-python-headless==4.8.1.78
+Pillow==10.1.0
+PyQt5==5.15.10
+PyQt5-Qt5==5.15.2
+PyQt5-sip==12.13.0
+requests==2.31.0
+urllib3==2.1.0

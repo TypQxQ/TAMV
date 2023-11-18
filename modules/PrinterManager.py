@@ -1,4 +1,10 @@
 import logging
+
+# import debugpy # for debugging
+# debugpy.listen(5678)
+# debugpy.wait_for_client()
+
+
 # invoke parent (TAMV) _logger
 _logger = logging.getLogger('TAMV.PrinterManager')
 

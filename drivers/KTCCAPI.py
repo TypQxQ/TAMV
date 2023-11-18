@@ -22,9 +22,9 @@ from typing import List
 # invoke parent (TAMV) _logger
 _logger = logging.getLogger('TAMV.MoonrakerAPI')
 
-# import debugpy
-# debugpy.listen(5678)
-# debugpy.wait_for_client()
+import debugpy
+debugpy.listen(5678)
+debugpy.wait_for_client()
 
 #################################################################################################################################
 #################################################################################################################################
@@ -326,14 +326,14 @@ class printerAPI:
     def getCoordinates(self):
         _logger.debug('Called getCoordinates')
         try:
-#            j = self.query('/printer/objects/query?gcode_move=gcode_position')
-            j = self.query('/printer/objects/query?gcode_move=position')
+            j = self.query('/printer/objects/query?gcode_move=gcode_position')
+            # j = self.query('/printer/objects/query?gcode_move=position')
             if 'error' in j:
                 raise CoordinatesException(j['error']['message'])
             elif 'result' in j:
-#                coords = j['result']['status']['gcode_move']['gcode_position']
+               coords = j['result']['status']['gcode_move']['gcode_position']
                 # Using the real toolhead position without any offsets applied.
-                coords = j['result']['status']['gcode_move']['position']
+                # coords = j['result']['status']['gcode_move']['position']
  
             return ({
                 'X': round(coords[0], 3),
@@ -371,6 +371,10 @@ class printerAPI:
             if tool is None:
                 raise SetOffsetException(
                     "Tool index %d is not valid." % tool)
+
+
+    # TODO, Rewrite this to not use the real toolhead position without any offsets applied.
+
 
             if len(self.G_CODE_SET_TOOL_OFFSET.strip()) == 0:
                 _logger.info(

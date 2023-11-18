@@ -1550,6 +1550,8 @@ class App(QMainWindow):
                 pass
         except:
             runtime = time.time()
+            
+        # If has recieved a coordinate from the DetectionManager.
         if(self.uv is not None):
             if(self.uv[0] is not None and self.uv[1] is not None):
                 # First calibration step

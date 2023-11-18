@@ -1,1 +1,1 @@
-[{"firmware":"RRF","filename":"DuetWebAPI.py"},{"firmware":"Moonraker","filename":"MoonrakerAPI.py"}]
+[{"firmware":"RRF","filename":"DuetWebAPI.py"},{"firmware":"Moonraker","filename":"MoonrakerAPI.py"},{"firmware":"Moonraker with KTCC","filename":"KTCCAPI.py"}]
