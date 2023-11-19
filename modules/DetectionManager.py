@@ -715,18 +715,19 @@ def _reader_camera(q, frameEvent, stopEvent, videoSrc, height, width, backend):
         q.send(-1)
         q.close()
 
-# Independent process to run camera grab functions. This is the experimental MJPEG version
-def _reader(q, frameEvent, stopEvent, videoSrc, height, width, backend):
-    if videoSrc.startswith('http'):
-        # This is an MJPEG stream
-        _logger.info('Starting MJPEG stream')
-        _reader_mjpeg(q, frameEvent, stopEvent, videoSrc, height, width, backend)
-    else:
-        # This is a standard camera
-        _logger.info('Starting standard camera')
-        _reader_camera(q, frameEvent, stopEvent, videoSrc, height, width, backend)
+# Independent process to run camera grab or MJPEG stream functions
+# def _reader(q, frameEvent, stopEvent, videoSrc, height, width, backend):
+#     if videoSrc.startswith('http'):
+#         # This is an MJPEG stream
+#         _logger.info('Starting MJPEG stream')
+#         _reader_mjpeg(q, frameEvent, stopEvent, videoSrc, height, width, backend)
+#     else:
+#         # This is a standard camera
+#         _logger.info('Starting standard camera')
+#         _reader_camera(q, frameEvent, stopEvent, videoSrc, height, width, backend)
         
-def _reader_mjpeg(q, frameEvent, stopEvent, videoSrc, height, width, backend):
+# def _reader_mjpeg(q, frameEvent, stopEvent, videoSrc, height, width, backend):
+def _reader(q, frameEvent, stopEvent, videoSrc, height, width, backend):
     camera_address = videoSrc
 
     # send default settings to queue just so it doesn't hang. This is a bit of a hack for backwards compatibility.

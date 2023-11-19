@@ -140,6 +140,13 @@ class SettingsDialog(QDialog):
             self.settingsStatusbarSignal.emit(errorMsg)
             _logger.error('Error fetching camera parameters.\n' + traceback.format_exc())
         ############# CAMERA TAB: ITEMS
+        # Camera address
+        try:
+            self.CameraAddress = QLineEdit(str(self.__settings['camera'][0]['video_src']))
+        except Exception:
+            self.CameraAddress = QLineEdit()
+        self.CameraAddress.setPlaceholderText('Enter Camera interface or IP')
+        
         # Camera Combobox
         self.camera_combo = QComboBox()
         for camera in self.__settings['camera']:
@@ -221,39 +228,42 @@ class SettingsDialog(QDialog):
         if(brightness_input is None and contrast_input is None and saturation_input is None and hue_input is None):
             self.reset_button.setDisabled(True)
         # Camera drop-down
-        self.camera_box = QGroupBox('Active camera source')
+        # self.camera_box = QGroupBox('Active camera source')
+        self.camera_box = QGroupBox('Active camera source. Please restart program after changing and saving.')
         self.camerasTab.layout.addWidget(self.camera_box)
         cmbox = QHBoxLayout()
+        cmbox.setAlignment(Qt.AlignTop)
         self.camera_box.setLayout(cmbox)
-        cmbox.addWidget(self.camera_combo)
+        cmbox.addWidget(self.CameraAddress)
+        # cmbox.addWidget(self.camera_combo)
         # Brightness
-        self.brightness_box =QGroupBox('Brightness')
-        self.camerasTab.layout.addWidget(self.brightness_box)
-        bvbox = QHBoxLayout()
-        self.brightness_box.setLayout(bvbox)
-        bvbox.addWidget(self.brightness_slider)
-        bvbox.addWidget(self.brightness_label)
-        # Contrast
-        self.contrast_box =QGroupBox('Contrast')
-        self.camerasTab.layout.addWidget(self.contrast_box)
-        cvbox = QHBoxLayout()
-        self.contrast_box.setLayout(cvbox)
-        cvbox.addWidget(self.contrast_slider)
-        cvbox.addWidget(self.contrast_label)
-        # Saturation
-        self.saturation_box =QGroupBox('Saturation')
-        self.camerasTab.layout.addWidget(self.saturation_box)
-        svbox = QHBoxLayout()
-        self.saturation_box.setLayout(svbox)
-        svbox.addWidget(self.saturation_slider)
-        svbox.addWidget(self.saturation_label)
-        # Hue
-        self.hue_box =QGroupBox('Hue')
-        self.camerasTab.layout.addWidget(self.hue_box)
-        hvbox = QHBoxLayout()
-        self.hue_box.setLayout(hvbox)
-        hvbox.addWidget(self.hue_slider)
-        hvbox.addWidget(self.hue_label)
+        # self.brightness_box =QGroupBox('Brightness')
+        # self.camerasTab.layout.addWidget(self.brightness_box)
+        # bvbox = QHBoxLayout()
+        # self.brightness_box.setLayout(bvbox)
+        # bvbox.addWidget(self.brightness_slider)
+        # bvbox.addWidget(self.brightness_label)
+        # # Contrast
+        # self.contrast_box =QGroupBox('Contrast')
+        # self.camerasTab.layout.addWidget(self.contrast_box)
+        # cvbox = QHBoxLayout()
+        # self.contrast_box.setLayout(cvbox)
+        # cvbox.addWidget(self.contrast_slider)
+        # cvbox.addWidget(self.contrast_label)
+        # # Saturation
+        # self.saturation_box =QGroupBox('Saturation')
+        # self.camerasTab.layout.addWidget(self.saturation_box)
+        # svbox = QHBoxLayout()
+        # self.saturation_box.setLayout(svbox)
+        # svbox.addWidget(self.saturation_slider)
+        # svbox.addWidget(self.saturation_label)
+        # # Hue
+        # self.hue_box =QGroupBox('Hue')
+        # self.camerasTab.layout.addWidget(self.hue_box)
+        # hvbox = QHBoxLayout()
+        # self.hue_box.setLayout(hvbox)
+        # hvbox.addWidget(self.hue_slider)
+        # hvbox.addWidget(self.hue_label)
         _logger.debug('*** exiting SettingsDialog.createCameraItems')
     
     def createMachineItems(self):
@@ -715,6 +725,8 @@ class SettingsDialog(QDialog):
                 }
             ]
             pass
+        # Save camera settings
+        self.__settings['camera'][0]['video_src'] = self.CameraAddress.text()
         self.settingsUpdateSignal.emit(self.__settings)
         _logger.debug('*** exiting SettingsDialog.updatePrinterObjects')
         self.close()

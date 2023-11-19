@@ -1,4 +1,4 @@
-# Install in Windows
+# Install and Run in Windows
 - Install Python
 - Restart Windows if prompted
 - Copy the repository to a directory.
