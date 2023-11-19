@@ -1,6 +1,8 @@
 # TAMV for Webcam stream
 This adaptation of TAMV runs remote on any OS, but only tested on Windows.
 It takes a MJPEG stream address instead of a local camera. Most webcams accesible by wifi use MJPEG streams. So does Crowsnest cameras in Moonraker for Klipper.
+You could also use any android phone runing DoidCam, IP Webcam or any other app that streams the camera to MJPEG, wheather you use an old android phone screen down on the byild plate or your new with a microscope camera connected.
+Also as a sidenote, a cheap endoscope camera also works fine.
 
 # Install and Run in Windows
 - Install Python
