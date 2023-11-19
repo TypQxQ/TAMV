@@ -1,9 +1,16 @@
+# TAMV for Webcam stream
+This adaptation of TAMV runs remote on any OS, but only tested on Windows.
+It takes a MJPEG stream address instead of a local camera. Most webcams accesible by wifi use MJPEG streams. So does Crowsnest cameras in Moonraker for Klipper.
+
 # Install and Run in Windows
 - Install Python
 - Restart Windows if prompted
 - Copy the repository to a directory.
 - Run Install_Windows.bat to install requirements for Windows.
 - Run_Windows.bat launches TAMV on Windows.
+
+# Run:
+Diffrence to anything below is that you need to provide a MJPEG stream in File -> Settings - Camera. This can look like for example: 'http://192.168.1.204/webcam2/stream'
 
 **TAMV _is under active development!_**
 # Table of Contents
